@@ -202,11 +202,19 @@ function isValidArray(array) {
 /* INTERFAZ DE USUARIO */
 const productListDiv = document.getElementById('productListDiv');
 const createProductDiv = document.getElementById('createProductDiv');
-const refreshBtn = document.getElementById('refreshBtn');
 const addProductBtn = document.getElementById('addProductBtn');
 const statusText = document.getElementById('status');
+const cardTitle = document.getElementById('card-title');
+const cardHeader = document.getElementById('card-header');
 
 let currentProducts = [];
+
+function switchCardTitle(isAddProductView) {
+  if (!cardTitle) return;
+  cardTitle.textContent = isAddProductView ? 'Formulario de Producto' : 'Lista de Productos';
+  cardHeader.style.justifyContent = isAddProductView ? 'center' : 'space-between';
+  addProductBtn.hidden = isAddProductView;
+}
 
 function renderProducts(items) {
   productListDiv.innerHTML = items.map((product) => `
@@ -298,8 +306,7 @@ async function renderCreateProductForm() {
         <textarea name="product_description" id="product_description"></textarea>
       </label>
       <div class="product-form-buttons">
-        <button class="cancel-button" type="button">Cancelar</button>
-        <button class="create-product-button" type="submit">Crear Producto</button>
+        <button class="create-product-button" type="submit">Guardar Producto</button>
       </div>
     </form>
   `;
@@ -307,6 +314,7 @@ async function renderCreateProductForm() {
   productListDiv.hidden = true;
   createProductDiv.hidden = false;
   createProductDiv.innerHTML = formHtml;
+  switchCardTitle(true);
 
   const form = document.getElementById('createProductForm');
 
@@ -333,11 +341,6 @@ async function renderCreateProductForm() {
     updateBranchOptions(selectedWarehouseId);
   });
 
-  document.querySelector('.cancel-button').addEventListener('click', (event) => {
-    createProductDiv.hidden = true;
-    productListDiv.hidden = false;
-  });
-
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
@@ -362,6 +365,7 @@ async function renderCreateProductForm() {
       await fetchProducts();
       createProductDiv.hidden = true;
       productListDiv.hidden = false;
+      switchCardTitle(false);
     } catch (error) {
       console.error('Error al crear producto:', error);
       window.alert('Hubo un error al crear el producto. Intente nuevamente.');
@@ -373,6 +377,9 @@ function updateStatus(message, isError = false) {
   if (!statusText) return;
   statusText.textContent = message;
   statusText.className = isError ? 'status status-error' : 'status';
+}
+function showStatus(show) {
+  statusText.hidden = !show;
 }
 
 function updateProducts(newProducts) {
@@ -440,6 +447,7 @@ async function createProduct(product) {
 }
 
 async function fetchProducts() {
+  showStatus(true);
   updateStatus('Cargando productos...');
 
   try {
@@ -464,22 +472,24 @@ async function fetchProducts() {
     if (products === staticProducts) {
       throw new Error('Backend returned data in unexpected format.');
     } else if (!areProductsValid(products)) {
+      showStatus(true);
       updateStatus('Productos almacenados con error de formato. Mostrando productos de ejemplo', true);
       products = staticProducts;
     } else {
-      updateStatus('Productos cargados exitosamente.');
+      showStatus(false);
     }
 
     renderProducts(products);
     updateProducts(products);
   } catch (error) {
     console.error('Failed to load backend products:', error);
+    showStatus(true);
     updateStatus('Error interno de sistema. Mostrando productos de ejemplo.', true);
     renderProducts(staticProducts);
   }
 }
 
-refreshBtn.addEventListener('click', fetchProducts);
+// refreshBtn.addEventListener('click', fetchProducts);
 addProductBtn.addEventListener('click', async () => {
   await renderCreateProductForm();
 });

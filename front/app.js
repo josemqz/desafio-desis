@@ -1,57 +1,5 @@
 const API_URL = 'http://localhost:8000/api';
 
-/* PRODUCTOS ESTATICOS */
-const staticProducts = [
-  {
-    id: 1,
-    code: 'HSJ001',
-    product_name: 'Frasco de especias',
-    warehouse_id: 1,
-    branch_id: 1,
-    currency_id: 1,
-    price: 12990,
-    material_plastic: false,
-    material_metal: false,
-    material_wood: true,
-    material_glass: true,
-    material_textile: false,
-    product_description: 'Un frasco compacto para tus especias favoritas.',
-    created_at: '2024-01-10T08:00:00Z',
-  },
-  {
-    id: 2,
-    code: 'SWP002',
-    product_name: 'Paño de seda',
-    warehouse_id: 1,
-    branch_id: 2,
-    currency_id: 2,
-    price: 24.5,
-    material_plastic: true,
-    material_metal: false,
-    material_wood: false,
-    material_glass: false,
-    material_textile: true,
-    product_description: 'Paño ligero de seda con colores vivos.',
-    created_at: '2024-02-05T11:30:00Z',
-  },
-  {
-    id: 3,
-    code: 'ATS003',
-    product_name: 'Set de té artesanal',
-    warehouse_id: 2,
-    branch_id: 2,
-    currency_id: 1,
-    price: 39000,
-    material_plastic: false,
-    material_metal: false,
-    material_wood: true,
-    material_glass: true,
-    material_textile: true,
-    product_description: 'Un set de té diseñado para uso cotidiano.',
-    created_at: '2024-03-12T09:15:00Z',
-  },
-];
-
 /* VALIDACIONES */
 function fieldLengthIsPositive(fieldLength, label, notifyToUser) {
   if (fieldLength > 0) return true;
@@ -200,43 +148,9 @@ function isValidArray(array) {
 
 
 /* INTERFAZ DE USUARIO */
-const productListDiv = document.getElementById('productListDiv');
 const createProductDiv = document.getElementById('createProductDiv');
-const addProductBtn = document.getElementById('addProductBtn');
-// const refreshBtn = document.getElementById('refreshBtn');
-const statusText = document.getElementById('status');
-const cardTitle = document.getElementById('card-title');
-const cardHeader = document.getElementById('card-header');
 
 let currentProducts = [];
-
-function switchCardTitle(isAddProductView) {
-  if (!cardTitle) return;
-  cardTitle.textContent = isAddProductView ? 'Formulario de Producto' : 'Lista de Productos';
-  cardHeader.style.justifyContent = isAddProductView ? 'center' : 'space-between';
-  addProductBtn.hidden = isAddProductView;
-}
-
-function renderProducts(items) {
-  productListDiv.innerHTML = items.map((product) => `
-    <article class="product-card">
-      <h3>${product.product_name}</h3>
-      <p>${product.product_description}</p>
-      <p><strong>Código:</strong> ${product.code}</p>
-      <p><strong>Bodega:</strong> ${product.warehouse_id}</p>
-      <p><strong>Sucursal:</strong> ${product.branch_id}</p>
-      <p><strong>Moneda:</strong> ${product.currency_id}</p>
-      <p><strong>Precio:</strong> $${product.price.toFixed(2)}</p>
-      <p><strong>Materiales:</strong> ${[
-      product.material_plastic && 'Plástico',
-      product.material_metal && 'Metal',
-      product.material_wood && 'Madera',
-      product.material_glass && 'Vidrio',
-      product.material_textile && 'Textil',
-    ].filter(Boolean).join(', ') || 'Ninguno'}</p>
-    </article>
-  `).join('');
-}
 
 async function renderCreateProductForm() {
   const { warehouses, branches, currencies } = await fetchCreateProductOptions();
@@ -313,10 +227,7 @@ async function renderCreateProductForm() {
     </form>
   `;
 
-  productListDiv.hidden = true;
-  createProductDiv.hidden = false;
   createProductDiv.innerHTML = formHtml;
-  switchCardTitle(true);
 
   const form = document.getElementById('createProductForm');
 
@@ -343,11 +254,6 @@ async function renderCreateProductForm() {
     updateBranchOptions(selectedWarehouseId);
   });
 
-  // document.querySelector('.cancel-button').addEventListener('click', (event) => {
-  //   createProductDiv.hidden = true;
-  //   productListDiv.hidden = false;
-  // });
-
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
@@ -369,23 +275,11 @@ async function renderCreateProductForm() {
       if (!isValidProduct(newProduct, true, true)) throw new Error('Producto no cumple con el formato requerido.');
       await createProduct(newProduct);
       await fetchProducts();
-      createProductDiv.hidden = true;
-      productListDiv.hidden = false;
-      switchCardTitle(false);
     } catch (error) {
       console.error('Error al crear producto:', error);
       window.alert('Hubo un error al crear el producto. Intente nuevamente.');
     }
   });
-}
-
-function updateStatus(message, isError = false) {
-  if (!statusText) return;
-  statusText.textContent = message;
-  statusText.className = isError ? 'status status-error' : 'status';
-}
-function showStatus(show) {
-  statusText.hidden = !show;
 }
 
 function updateProducts(newProducts) {
@@ -454,9 +348,6 @@ async function createProduct(product) {
 }
 
 async function fetchProducts() {
-  showStatus(true);
-  updateStatus('Cargando productos...');
-
   try {
     const response = await fetch(`${API_URL}/products`, {
       method: 'GET',
@@ -474,30 +365,21 @@ async function fetchProducts() {
       ? data
       : Array.isArray(data.products)
         ? data.products
-        : staticProducts;
+        : null;
 
-    if (products === staticProducts) {
+    if (!products) {
       throw new Error('Backend returned data in unexpected format.');
     } else if (!areProductsValid(products)) {
-      showStatus(true);
-      updateStatus('Productos almacenados con error de formato. Mostrando productos de ejemplo', true);
-      products = staticProducts;
-    } else {
-      showStatus(false);
+      console.warn('Productos recibidos del backend no cumplen con el formato esperado:', products);
+      products = [];
     }
-
-    renderProducts(products);
     updateProducts(products);
   } catch (error) {
     console.error('Failed to load backend products:', error);
-    showStatus(true);
-    updateStatus('Error interno de sistema. Mostrando productos de ejemplo.', true);
-    renderProducts(staticProducts);
   }
 }
 
-// refreshBtn.addEventListener('click', fetchProducts);
-addProductBtn.addEventListener('click', async () => {
+(async () => {
+  await fetchProducts();
   await renderCreateProductForm();
-});
-fetchProducts();
+})();

@@ -157,7 +157,7 @@ function isValidDescription(description, notifyToUser) {
   return true;
 }
 
-function isValidProduct(product, notifyToUser = false) {
+function isValidProduct(product, checkUniqueCodes = false, notifyToUser = false) {
   console.log('Validando producto:', product);
   console.log('Validando producto:', JSON.stringify(product));
   if (!product || typeof product !== 'object') return false;
@@ -172,7 +172,7 @@ function isValidProduct(product, notifyToUser = false) {
 
   return (
     isValidProductCode(product.code, notifyToUser) &&
-    isUniqueProductCode(product.code, notifyToUser) &&
+    (checkUniqueCodes ? isUniqueProductCode(product.code, notifyToUser) : true) &&
     isValidName(product.product_name, notifyToUser) &&
     isValidPrice(product.price, notifyToUser) &&
     isValidMaterialChoice([
@@ -189,9 +189,9 @@ function isValidProduct(product, notifyToUser = false) {
   );
 }
 
-function areProductsValid(products) {
+function areProductsValid(products, checkUniqueCodes = false) {
   console.log('productos:', products);
-  return Array.isArray(products) && products.every(isValidProduct);
+  return Array.isArray(products) && products.every(p => isValidProduct(p, checkUniqueCodes));
 }
 
 function isValidArray(array) {
@@ -359,7 +359,7 @@ async function renderCreateProductForm() {
       product_description: formData.get('product_description')
     };
     try {
-      if (!isValidProduct(newProduct, true)) throw new Error('Producto no cumple con el formato requerido.');
+      if (!isValidProduct(newProduct, true, true)) throw new Error('Producto no cumple con el formato requerido.');
       await createProduct(newProduct);
       window.alert('Producto creado exitosamente.');
       await fetchProducts();

@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS branches;
+DROP TABLE IF EXISTS warehouses;
+DROP TABLE IF EXISTS currencies;

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desis Frontend</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div>
+        <h1>Desis Frontend</h1>
+        <p class="subtitle">Hecho con ❤️ por José Quezada</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="card">
+        <div class="card-header">
+          <h2>Productos</h2>
+          <div class="hero-actions">
+            <button id="addProductBtn">Añadir producto</button>
+            <button id="refreshBtn">Refrescar productos</button>
+          </div>
+        </div>
+        <div id="status" class="status"></div>
+        <div id="productListDiv"></div>
+        <div id="createProductDiv" hidden></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

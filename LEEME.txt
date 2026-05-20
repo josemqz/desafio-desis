@@ -1,0 +1,32 @@
+* * Supuestos * *
+- Se asume que los servidores serán ejecutados en sistemas Windows de arquitectura de 64 bits.
+
+* * Versiones de tecnologías * *
+- php 8.5.6
+- postgresql 18.4
+
+* * Instalación * * 
+
+* Instalar PostgreSQL 18.4
+https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
+
+* Instalar chocolatey en Powershell (instrucciones en https://chocolatey.org/install)
+- Abrir Powershell como administrador
+- Ejecutar `Get-ExecutionPolicy`. 
+  - Si retorna "Restricted", ejecutar `Set-ExecutionPolicy AllSigned` o `Set-ExecutionPolicy Bypass -Scope Process`
+- Ejecutar:
+$ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+* Instalar php 
+- Abrir Powershell como administrador
+- Ejecutar `choco install php`
+
+* Inicializar base de datos
+- Ejecutar `make setup`
+- Ingresar contraseña por defecto "postgres"
+
+* Desplegar backend:
+- Ejecutar `make serve`
+
+* Desplegar frontend
+- Abrir archivo "index.html" desde un navegador web

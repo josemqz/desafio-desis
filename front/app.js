@@ -203,22 +203,28 @@ function isValidArray(array) {
 const productListDiv = document.getElementById('productListDiv');
 const createProductDiv = document.getElementById('createProductDiv');
 const addProductBtn = document.getElementById('addProductBtn');
-// const refreshBtn = document.getElementById('refreshBtn');
+const refreshBtn = document.getElementById('refreshBtn');
 const statusText = document.getElementById('status');
 const cardTitle = document.getElementById('card-title');
 const cardHeader = document.getElementById('card-header');
 
 let currentProducts = [];
 
-function switchCardTitle(isAddProductView) {
+function switchToCreateProductView(isAddProductView) {
   if (!cardTitle) return;
+  createProductDiv.hidden = !isAddProductView;
+  productListDiv.hidden = isAddProductView;
+  addProductBtn.hidden = isAddProductView;
+  refreshBtn.hidden = isAddProductView;
+
   cardTitle.textContent = isAddProductView ? 'Formulario de Producto' : 'Lista de Productos';
   cardHeader.style.justifyContent = isAddProductView ? 'center' : 'space-between';
-  addProductBtn.hidden = isAddProductView;
 }
 
-function renderProducts(items) {
-  productListDiv.innerHTML = items.map((product) => `
+function renderProducts(products) {
+  updateProducts(products);
+
+  productListDiv.innerHTML = products.map((product) => `
     <article class="product-card">
       <h3>${product.product_name}</h3>
       <p>${product.product_description}</p>
@@ -234,7 +240,8 @@ function renderProducts(items) {
       product.material_glass && 'Vidrio',
       product.material_textile && 'Textil',
     ].filter(Boolean).join(', ') || 'Ninguno'}</p>
-    </article>
+    </article> 
+    <hr>
   `).join('');
 }
 
@@ -307,17 +314,15 @@ async function renderCreateProductForm() {
         <textarea name="product_description" id="product_description"></textarea>
       </label>
       <div class="product-form-buttons">
-        <!-- <button class="cancel-button" type="button">Cancelar</button> -->
+        <button class="cancel-button" type="button">Cancelar</button>
         <button class="create-product-button" type="submit">Guardar Producto</button>
       </div>
     </form>
   `;
 
-  productListDiv.hidden = true;
-  createProductDiv.hidden = false;
   createProductDiv.innerHTML = formHtml;
-  switchCardTitle(true);
 
+  switchToCreateProductView(true);
   const form = document.getElementById('createProductForm');
 
   const warehouseSelect = form.querySelector('select[name="warehouse_id"]');
@@ -343,10 +348,9 @@ async function renderCreateProductForm() {
     updateBranchOptions(selectedWarehouseId);
   });
 
-  // document.querySelector('.cancel-button').addEventListener('click', (event) => {
-  //   createProductDiv.hidden = true;
-  //   productListDiv.hidden = false;
-  // });
+  document.querySelector('.cancel-button').addEventListener('click', (event) => {
+    switchToCreateProductView(false);
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -365,25 +369,26 @@ async function renderCreateProductForm() {
       material_textile: formData.get('material_textile') === 'on',
       product_description: formData.get('product_description')
     };
+
     try {
       if (!isValidProduct(newProduct, true, true)) throw new Error('Producto no cumple con el formato requerido.');
       await createProduct(newProduct);
       await fetchProducts();
-      createProductDiv.hidden = true;
-      productListDiv.hidden = false;
-      switchCardTitle(false);
+      switchToCreateProductView(false);
+
     } catch (error) {
       console.error('Error al crear producto:', error);
-      window.alert('Hubo un error al crear el producto. Intente nuevamente.');
     }
   });
 }
 
 function updateStatus(message, isError = false) {
+  showStatus(true);
   if (!statusText) return;
   statusText.textContent = message;
   statusText.className = isError ? 'status status-error' : 'status';
 }
+
 function showStatus(show) {
   statusText.hidden = !show;
 }
@@ -405,9 +410,7 @@ async function fetchCreateProductOptions() {
     if (!response.ok) {
       throw new Error(`Backend returned ${response.status}`);
     }
-    console.log('Respuesta de opciones del backend:', response);
     const data = await response.json();
-    console.log('Opciones recibidas del backend:', data);
     if (!data || typeof data !== 'object') {
       throw new Error('Backend returned data in unexpected format.');
     }
@@ -449,12 +452,12 @@ async function createProduct(product) {
     window.alert('Producto creado exitosamente.');
   } catch (error) {
     console.error('Error al crear producto:', error);
+    window.alert('Hubo un error al crear el producto. Intente nuevamente.');
     throw error;
   }
 }
 
 async function fetchProducts() {
-  showStatus(true);
   updateStatus('Cargando productos...');
 
   try {
@@ -478,25 +481,24 @@ async function fetchProducts() {
 
     if (products === staticProducts) {
       throw new Error('Backend returned data in unexpected format.');
+
     } else if (!areProductsValid(products)) {
-      showStatus(true);
       updateStatus('Productos almacenados con error de formato. Mostrando productos de ejemplo', true);
       products = staticProducts;
+
     } else {
       showStatus(false);
     }
 
     renderProducts(products);
-    updateProducts(products);
   } catch (error) {
     console.error('Failed to load backend products:', error);
-    showStatus(true);
     updateStatus('Error interno de sistema. Mostrando productos de ejemplo.', true);
     renderProducts(staticProducts);
   }
 }
 
-// refreshBtn.addEventListener('click', fetchProducts);
+refreshBtn.addEventListener('click', fetchProducts);
 addProductBtn.addEventListener('click', async () => {
   await renderCreateProductForm();
 });

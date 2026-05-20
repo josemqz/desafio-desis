@@ -137,6 +137,16 @@ main .card {
   background: #18876d;
 }
 
+/* .cancel-button {
+  background: #e66161;
+  font-size: 16px;
+}
+
+.cancel-button:hover {
+  transform: translateY(-1px);
+  background: #a54444;
+} */
+
 .field-warning {
   display: none;
   color: #b00;
@@ -199,6 +209,6 @@ main .card {
   .product-form-buttons {
     grid-column: 1 / -1;
     display: flex;
-    justify-content: center;
+    justify-content: center; /*space-between*/
   }
 }

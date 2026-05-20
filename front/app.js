@@ -203,6 +203,7 @@ function isValidArray(array) {
 const productListDiv = document.getElementById('productListDiv');
 const createProductDiv = document.getElementById('createProductDiv');
 const addProductBtn = document.getElementById('addProductBtn');
+// const refreshBtn = document.getElementById('refreshBtn');
 const statusText = document.getElementById('status');
 const cardTitle = document.getElementById('card-title');
 const cardHeader = document.getElementById('card-header');
@@ -306,6 +307,7 @@ async function renderCreateProductForm() {
         <textarea name="product_description" id="product_description"></textarea>
       </label>
       <div class="product-form-buttons">
+        <!-- <button class="cancel-button" type="button">Cancelar</button> -->
         <button class="create-product-button" type="submit">Guardar Producto</button>
       </div>
     </form>
@@ -341,6 +343,11 @@ async function renderCreateProductForm() {
     updateBranchOptions(selectedWarehouseId);
   });
 
+  // document.querySelector('.cancel-button').addEventListener('click', (event) => {
+  //   createProductDiv.hidden = true;
+  //   productListDiv.hidden = false;
+  // });
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
@@ -361,7 +368,6 @@ async function renderCreateProductForm() {
     try {
       if (!isValidProduct(newProduct, true, true)) throw new Error('Producto no cumple con el formato requerido.');
       await createProduct(newProduct);
-      window.alert('Producto creado exitosamente.');
       await fetchProducts();
       createProductDiv.hidden = true;
       productListDiv.hidden = false;
@@ -440,6 +446,7 @@ async function createProduct(product) {
     if (!response.ok) {
       throw new Error(`Backend returned ${response.status}`);
     }
+    window.alert('Producto creado exitosamente.');
   } catch (error) {
     console.error('Error al crear producto:', error);
     throw error;
